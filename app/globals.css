@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: rgb(211, 211, 255); /* lavender */
+  --header: #3B3B98;        /* dark lavender-blue */
+  --accent: #5C7AEA;        /* light periwinkle */
+  --text: #0B0B0B;          /* charcoal */
+  --footer: #2F2F6E;        /* deep indigo */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.prose-title { @apply text-3xl sm:text-4xl font-extrabold tracking-tight; }
+.prose-h2 { @apply text-xl sm:text-2xl font-bold; }
+.container { @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8; }

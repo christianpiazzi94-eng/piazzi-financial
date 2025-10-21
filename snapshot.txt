@@ -1,0 +1,244 @@
+
+--- app/layout.tsx ---
+import './globals.css';
+
+const BRAND = 'Piazzi Financial Analysis';
+
+export const metadata = {
+  title: BRAND,
+  description: 'Data-driven financial insights and research modules.',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className="text-gray-900 bg-[rgb(211,211,255)]">
+        {/* Header */}
+        <header className="bg-white border-b sticky top-0 z-20 shadow-sm">
+          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            {/* Logo + Brand */}
+            <div className="flex items-center gap-3">
+              <img
+                src="/Lavender.png"
+                alt="Piazzi Financial Analysis logo"
+                className="w-10 h-10 rounded-full object-cover hover:opacity-80 transition"
+              />
+              <span className="font-semibold tracking-tight text-gray-900 text-lg">
+                {BRAND}
+              </span>
+            </div>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
+              <a href="/" className="hover:text-[#3B3B98] transition">
+                Home
+              </a>
+              <a href="#insights" className="hover:text-[#3B3B98] transition">
+                Insights
+              </a>
+              <a href="#subscribe" className="hover:text-[#3B3B98] transition">
+                Subscribe
+              </a>
+              <a href="#" className="hover:text-[#3B3B98] transition">
+                Contact
+              </a>
+              <a href="#" className="hover:text-[#3B3B98] transition">
+                Login
+              </a>
+            </nav>
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main>{children}</main>
+
+        {/* Footer */}
+        <footer className="border-t mt-16 py-8 text-center text-sm text-gray-600 bg-white">
+          © {new Date().getFullYear()} {BRAND} — All rights reserved.
+        </footer>
+      </body>
+    </html>
+  );
+}
+
+--- app/page.tsx ---
+'use client'; // needed because we use useState
+
+import { useState } from 'react';
+import SectionTabs, { type Tab } from '../components/SectionTabs';
+import InsightCard from '../components/InsightCard';
+
+/** Keep your inline Hero so there are no import issues */
+function Hero() {
+  return (
+    <section className="relative h-[340px] md:h-[420px] w-full bg-gradient-to-br from-[#3B3B98] via-[#5C7AEA] to-[#9aa7ff]">
+      <div className="absolute inset-0 bg-black/30" />
+      <div className="relative z-10 h-full max-w-6xl mx-auto px-6 flex flex-col items-center justify-center text-center text-white">
+        <h1 className="text-5xl md:text-6xl font-semibold tracking-tight drop-shadow">
+          Insights
+        </h1>
+        <a
+          href="#subscribe"
+          className="mt-6 inline-flex items-center rounded-xl bg-white text-[#167a61] font-semibold px-6 py-3 shadow hover:shadow-md transition"
+        >
+          SUBSCRIBE
+        </a>
+      </div>
+    </section>
+  );
+}
+
+export default function Page() {
+  const [tab, setTab] = useState<Tab>('All Insights');
+
+  return (
+    <>
+      <Hero />
+
+      <SectionTabs active={tab} onChange={setTab} />
+
+      <section className="py-10">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="mb-6">
+            <h2 id="insights" className="text-xl font-semibold text-gray-800">
+              {tab}
+            </h2>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <InsightCard key={i} />
+            ))}
+          </div>
+
+          <div id="subscribe" className="mt-16 rounded-2xl bg-white border p-6 text-center">
+            <h3 className="text-lg font-semibold">Get new insights in your inbox</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Neutral wording if you’ll link to an external checkout later.
+            </p>
+            <a
+              href="https://example.com/checkout"
+              className="inline-flex items-center mt-4 rounded-xl bg-[#5C7AEA] px-5 py-3 font-semibold text-white hover:opacity-90 transition"
+            >
+              Continue to Website
+            </a>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+--- app/globals.css ---
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: rgb(211, 211, 255); /* lavender */
+  --header: #3B3B98;        /* dark lavender-blue */
+  --accent: #5C7AEA;        /* light periwinkle */
+  --text: #0B0B0B;          /* charcoal */
+  --footer: #2F2F6E;        /* deep indigo */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.prose-title { @apply text-3xl sm:text-4xl font-extrabold tracking-tight; }
+.prose-h2 { @apply text-xl sm:text-2xl font-bold; }
+.container { @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8; }
+
+--- components/Header.tsx ---
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import clsx from 'clsx';
+
+export default function Header() {
+  const [open, setOpen] = useState(false);
+  return (
+    <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="container">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight">
+            <div className="h-7 w-7 rounded-full bg-brand" aria-hidden />
+            <span>YourBrand</span>
+          </Link>
+          <nav className="hidden gap-6 md:flex text-sm font-medium text-gray-700">
+            <Link href="#">About</Link>
+            <Link href="#">Strategies</Link>
+            <Link href="/">{'Insights'}</Link>
+            <Link href="#">Investors</Link>
+          </nav>
+          <button onClick={() => setOpen(!open)} className="md:hidden rounded-lg border px-3 py-1.5 text-sm">Menu</button>
+        </div>
+        {open && (
+          <div className="pb-4 md:hidden">
+            <nav className="grid gap-2 text-sm">
+              <Link href="#">About</Link>
+              <Link href="#">Strategies</Link>
+              <Link href="/">{'Insights'}</Link>
+              <Link href="#">Investors</Link>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  )
+}
+
+--- components/Footer.tsx ---
+import Link from 'next/link';
+
+export default function Footer() {
+  return (
+    <footer className="mt-16 border-t bg-white">
+      <div className="container">
+        <div className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+          <div>
+            <div className="text-lg font-bold">YourBrand</div>
+            <p className="mt-2 max-w-xs text-gray-600">Concise tagline about your mission.</p>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">Sections</div>
+            <ul className="mt-3 space-y-2 text-gray-600">
+              <li><Link href="/">Insights</Link></li>
+              <li><Link href="#">Memos</Link></li>
+              <li><Link href="#">Market Commentary</Link></li>
+              <li><Link href="#">Education</Link></li>
+            </ul>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">Company</div>
+            <ul className="mt-3 space-y-2 text-gray-600">
+              <li><Link href="#">About</Link></li>
+              <li><Link href="#">Careers</Link></li>
+              <li><Link href="#">Contact</Link></li>
+            </ul>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">Legal</div>
+            <ul className="mt-3 space-y-2 text-gray-600">
+              <li><Link href="#">Terms</Link></li>
+              <li><Link href="#">Privacy</Link></li>
+              <li><Link href="#">Disclosures</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t py-6 text-center text-xs text-gray-500">© {new Date().getFullYear()} YourBrand. All rights reserved.</div>
+      </div>
+    </footer>
+  )
+}

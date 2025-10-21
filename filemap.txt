@@ -1,0 +1,26 @@
+.
+├── app
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components
+│   ├── CategoryPills.tsx
+│   ├── Footer.tsx
+│   ├── Header.tsx
+│   ├── Hero.tsx
+│   ├── InsightCard.tsx
+│   ├── Section.tsx
+│   └── SectionTabs.tsx
+├── filemap.txt
+├── lib
+├── next-env.d.ts
+├── next.config.mjs
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+│   └── Lavender.png
+├── tailwind.config.ts
+└── tsconfig.json
+
+5 directories, 19 files

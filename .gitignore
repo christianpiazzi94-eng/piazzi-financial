@@ -1,0 +1,6 @@
+node_modules
+.next
+.vercel
+piazzi-snapshot.zip
+public/hero.jpg
+public/Lavender.png
