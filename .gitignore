@@ -2,3 +2,5 @@ node_modules
 .next
 .vercel
 piazzi-snapshot.zip
+filemap.txt
+snapshot.txt
