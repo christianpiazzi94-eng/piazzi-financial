@@ -1,23 +1,25 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
-export default {
+const config: Config = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        brand: {
-          DEFAULT: '#0b3d2e', // deep green-esque brand tone
-          light: '#115e47',
-          muted: '#dfe8e4'
-        }
+        'brand-lavender': 'rgb(211, 211, 255)', // Your custom color
+        'brand-dark': '#1e1b4b', // A very dark indigo-purple (Tailwind's indigo-950)
+        'brand-light': '#c7d2fe', // A light indigo (Tailwind's indigo-200)
       },
-      borderRadius: {
-        xl2: '1.25rem'
-      }
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],
-} satisfies Config
+};
+export default config;

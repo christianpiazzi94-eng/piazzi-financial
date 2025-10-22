@@ -1,48 +1,71 @@
 // components/Header.tsx
-'use client';
-
+import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+
+const navLinks = [
+  { name: 'Home', href: '/' },
+  { name: 'Performance', href: '#' },
+  { name: 'Materials', href: '#' },
+  { name: 'Corporate', href: '#' },
+  { name: 'Portfolio', href: '#' },
+  { name: 'Press Releases', href: '#' },
+  { name: 'About Us', href: '#' },
+];
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight">
-            <div className="h-7 w-7 rounded-full bg-[color:var(--header)]" aria-hidden />
-            <span>Piazzi Financial Analysis</span>
-          </Link>
-          <nav className="hidden gap-6 md:flex text-sm font-medium text-gray-700">
-            <Link href="/">Home</Link>
-            <Link href="#insights">Insights</Link>
-            <Link href="#subscribe">Subscribe</Link>
-            <Link href="#">Contact</Link>
-            <Link href="#">Login</Link>
-          </nav>
-          <button
-            onClick={() => setOpen(!open)}
-            className="md:hidden rounded-lg border px-3 py-1.5 text-sm"
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            aria-label="Toggle menu"
-          >
-            Menu
+    // Use brand-lavender for the background
+    <header className="bg-brand-lavender shadow-md">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/Lavender.png"
+            alt="Piazzi Financial Analysis Logo"
+            width={40}
+            height={40}
+            className="rounded"
+          />
+          {/* Use brand-dark for the text */}
+          <span className="hidden text-xl font-medium text-brand-dark sm:block">
+            Piazzi Financial Analysis
+          </span>
+        </Link>
+
+        {/* Desktop Nav Links */}
+        <div className="hidden items-center gap-6 md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              // Use brand-dark for links, with a simple opacity hover effect
+              className="text-sm font-medium text-brand-dark transition hover:opacity-75"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
+
+        {/* Mobile Menu Button (Placeholder) */}
+        <div className="md:hidden">
+          {/* Use brand-dark for the mobile icon */}
+          <button className="text-brand-dark">
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
+            </svg>
           </button>
         </div>
-        {open && (
-          <div id="mobile-nav" className="pb-4 md:hidden">
-            <nav className="grid gap-2 text-sm">
-              <Link href="/">Home</Link>
-              <Link href="#insights">Insights</Link>
-              <Link href="#subscribe">Subscribe</Link>
-              <Link href="#">Contact</Link>
-              <Link href="#">Login</Link>
-            </nav>
-          </div>
-        )}
-      </div>
+      </nav>
     </header>
   );
 }

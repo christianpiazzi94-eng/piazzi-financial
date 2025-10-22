@@ -1,49 +1,17 @@
-'use client';
-import { useState } from 'react';
+// components/Section.tsx
+import React from 'react';
 
-// These are the tab labels shown in the menu
-const TABS = [
-  'All Insights',
-  'Memos from Leadership',
-  'Market Commentary',
-  'Education',
-  'Press',
-] as const;
+// This component is just a simple wrapper.
+// It creates the max-width container and adds padding.
 
-export type Tab = typeof TABS[number];
-
-export default function SectionTabs({
-  active,
-  onChange,
+export default function Section({
+  children,
 }: {
-  active: Tab;
-  onChange: (t: Tab) => void;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border-b">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex gap-8 overflow-auto py-4">
-          {TABS.map((tab) => {
-            const isActive = tab === active;
-            return (
-              <button
-                key={tab}
-                onClick={() => onChange(tab)}
-                className={`relative whitespace-nowrap pb-3 text-sm font-semibold tracking-wide transition-colors ${
-                  isActive
-                    ? 'text-gray-900'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                {tab.toUpperCase()}
-                {isActive && (
-                  <span className="absolute left-0 bottom-0 h-[3px] w-full bg-[#3B3B98] rounded-full transition-all duration-300" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    <section className="mx-auto max-w-6xl px-6 py-12">
+      {children}
+    </section>
   );
 }
