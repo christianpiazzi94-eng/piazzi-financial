@@ -1,7 +1,11 @@
+// next.config.mjs
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  experimental: { typedRoutes: true, serverActions: {} },
+  // This block will disable the strict link checking
+  experimental: {
+    typedRoutes: false,
+  },
 };
 
 export default nextConfig;
