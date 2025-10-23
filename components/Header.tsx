@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-// New, simplified list of nav links
+// Simplified nav links
 const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'Materials', href: '/materials' },
@@ -18,22 +18,23 @@ export default function Header() {
 
   return (
     <header className="bg-brand-lavender shadow-md">
-      {/* Set back to max-w-6xl to match your Hero and Section components */}
+      {/* Align with max-w-6xl layout width */}
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        
-        {/* Left side: Just the Logo */}
+
+        {/* Left side: Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center">
           <Image
-            src="/Lavender.png"
+            src="/logo.svg" // Your SVG file
             alt="Piazzi Financial Analysis Logo"
-            width={168}  // 3x larger (was 56)
-            height={168} // 3x larger (was 56)
-            className="rounded"
+            width={168} // Original width (aspect ratio)
+            height={168} // Original height (aspect ratio)
+            // UPDATE HERE: Change h-36 to h-24 for 2x visual height (96px)
+            className="h-24 w-auto" // Sets visual size to 96px tall
+            priority
           />
-          {/* The "Piazzi Financial Analysis" text span is now REMOVED */}
         </Link>
 
-        {/* Center: Desktop Nav Links (hidden on mobile) */}
+        {/* Center: Desktop Nav */}
         <div className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <Link
@@ -46,7 +47,7 @@ export default function Header() {
           ))}
         </div>
 
-        {/* Right side: Auth Buttons (hidden on mobile) */}
+        {/* Right side: Auth Buttons */}
         <div className="hidden flex-shrink-0 items-center gap-6 md:flex">
           <Link
             href="/login"
@@ -62,7 +63,7 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Mobile Menu Button (Hamburger Icon - shown on mobile, hidden on desktop) */}
+        {/* Mobile Menu Button */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -86,8 +87,7 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* --- Mobile Menu Overlay --- */}
-      {/* This part remains the same */}
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-brand-dark bg-opacity-95 md:hidden">
           <div className="flex justify-end p-6">
