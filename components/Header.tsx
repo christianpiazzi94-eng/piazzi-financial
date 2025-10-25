@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button'; // <-- Import the Shadcn Button
+import { Button } from '@/components/ui/button'; // Shadcn Button
 
 // Simplified nav links
 const navLinks = [
@@ -57,7 +57,8 @@ export default function Header() {
           </Link>
           {/* Use Shadcn Button inside the Link */}
           <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
-            <Link href="/subscribe">Subscribe</Link>
+            {/* VVV UPDATE THIS HREF VVV */}
+            <Link href="https://subscribepage.io/zUEAS9" target="_blank" rel="noopener noreferrer">Subscribe</Link>
           </Button>
         </div>
 
@@ -129,7 +130,8 @@ export default function Header() {
             </Link>
             {/* Use Shadcn Button in Mobile menu too */}
             <Button asChild size="lg" className="mt-4 bg-brand-lavender text-brand-dark hover:bg-brand-lavender/90">
-               <Link href="/subscribe" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
+              {/* VVV UPDATE THIS HREF VVV */}
+               <Link href="https://subscribepage.io/zUEAS9" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
             </Button>
           </div>
         </div>
