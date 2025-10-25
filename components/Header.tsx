@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button'; // <-- Import the Shadcn Button
 
 // Simplified nav links
 const navLinks = [
@@ -28,7 +29,6 @@ export default function Header() {
             alt="Piazzi Financial Analysis Logo"
             width={168} // Original width (aspect ratio)
             height={168} // Original height (aspect ratio)
-            // UPDATE HERE: Change h-36 to h-24 for 2x visual height (96px)
             className="h-24 w-auto" // Sets visual size to 96px tall
             priority
           />
@@ -55,12 +55,10 @@ export default function Header() {
           >
             Log In
           </Link>
-          <Link
-            href="/subscribe"
-            className="whitespace-nowrap rounded-lg bg-brand-dark px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-opacity-80"
-          >
-            Subscribe
-          </Link>
+          {/* Use Shadcn Button inside the Link */}
+          <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
+            <Link href="/subscribe">Subscribe</Link>
+          </Button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -129,13 +127,10 @@ export default function Header() {
             >
               Log In
             </Link>
-            <Link
-              href="/subscribe"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="mt-4 rounded-lg bg-brand-lavender px-6 py-3 text-lg font-semibold text-brand-dark shadow transition hover:bg-opacity-90"
-            >
-              Subscribe
-            </Link>
+            {/* Use Shadcn Button in Mobile menu too */}
+            <Button asChild size="lg" className="mt-4 bg-brand-lavender text-brand-dark hover:bg-brand-lavender/90">
+               <Link href="/subscribe" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
+            </Button>
           </div>
         </div>
       )}

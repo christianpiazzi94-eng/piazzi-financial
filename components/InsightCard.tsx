@@ -1,39 +1,53 @@
 // components/InsightCard.tsx
-import Link from 'next/link'; // Import Link for navigation
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardDescription, // Optional: for subtitle or date
+  CardFooter,    // Optional: for author or category
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"; // Import Shadcn card components
 
-// Define the props the component expects
+// Define the props the component expects (same as before)
 interface InsightCardProps {
   title: string;
-  summary?: string; // Summary is optional
-  slug?: string;    // Slug is optional but needed for the link
+  summary?: string;
+  slug?: string;
+  // Add other props like author, date, category later if needed
 }
 
 export default function InsightCard({ title, summary, slug }: InsightCardProps) {
+  
+  // Build the content using Shadcn Card components
   const cardContent = (
-    // Styling the card
-    <div className="flex h-full flex-col rounded border bg-white p-4 shadow transition hover:shadow-lg">
-      <h3 className="text-lg font-semibold text-brand-dark">{title}</h3>
-      {summary && ( // Only display summary if it exists
-        // line-clamp-3 limits the summary to 3 lines with an ellipsis (...)
-        <p className="mt-2 flex-grow text-sm text-slate-600 line-clamp-3">
-          {summary} 
-        </p>
+    <Card className="flex h-full flex-col transition hover:shadow-lg"> {/* Apply flex layout */}
+      <CardHeader>
+        <CardTitle className="text-lg line-clamp-2">{title}</CardTitle> {/* Limit title lines */}
+        {/* You could put a subtitle or date in CardDescription if needed */}
+        {/* <CardDescription>Optional Subtitle/Date</CardDescription> */}
+      </CardHeader>
+      {summary && ( // Only add CardContent if summary exists
+        <CardContent className="flex-grow text-sm text-slate-600"> {/* flex-grow makes content take space */}
+          <p className="line-clamp-3">{summary}</p> {/* Limit summary lines */}
+        </CardContent>
       )}
-      {/* Placeholder for future date/author */}
-      <p className="mt-4 text-xs text-slate-400">Section • Date</p> 
-    </div>
+      {/* CardFooter could be used for author/category later */}
+      <CardFooter className="text-xs text-slate-400">
+        <p>Section • Date</p> {/* Placeholder */}
+      </CardFooter>
+    </Card>
   );
 
-  // If a slug exists, wrap the card content in a link to the insight page
-  // The link will go to /insights/your-slug-here (we'll create this page later)
+  // If a slug exists, wrap the card content in a link
   if (slug) {
     return (
-      <Link href={`/insights/${slug}`} className="block"> 
+      <Link href={`/insights/${slug}`} className="block h-full"> {/* Ensure link takes full height */}
         {cardContent}
       </Link>
     );
   }
 
-  // If no slug, just render the card without a link
+  // Otherwise, just render the card content without a link
   return cardContent;
 }
