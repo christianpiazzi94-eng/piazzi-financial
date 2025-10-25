@@ -4,3 +4,5 @@ node_modules
 piazzi-snapshot.zip
 filemap.txt
 snapshot.txt
+.env
+.env.local

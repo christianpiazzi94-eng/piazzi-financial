@@ -3,7 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button'; // Shadcn Button
+import { Button } from '@/components/ui/button';
+// <-- 1. Import Clerk components
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'; 
+
 
 // Simplified nav links
 const navLinks = [
@@ -19,22 +22,21 @@ export default function Header() {
 
   return (
     <header className="bg-brand-lavender shadow-md">
-      {/* Align with max-w-6xl layout width */}
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-
-        {/* Left side: Logo */}
+        
+        {/* Left side: Just the Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center">
           <Image
-            src="/logo.svg" // Your SVG file
+            src="/logo.svg" 
             alt="Piazzi Financial Analysis Logo"
-            width={168} // Original width (aspect ratio)
-            height={168} // Original height (aspect ratio)
-            className="h-24 w-auto" // Sets visual size to 96px tall
+            width={168}  
+            height={168} 
+            className="h-24 w-auto" 
             priority
           />
         </Link>
 
-        {/* Center: Desktop Nav */}
+        {/* Center: Desktop Nav Links */}
         <div className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <Link
@@ -47,22 +49,30 @@ export default function Header() {
           ))}
         </div>
 
-        {/* Right side: Auth Buttons */}
+        {/* Right side: AUTH BUTTONS - CLERK INTEGRATION */}
         <div className="hidden flex-shrink-0 items-center gap-6 md:flex">
-          <Link
-            href="/login"
-            className="whitespace-nowrap text-sm font-medium text-brand-dark transition hover:opacity-75"
-          >
-            Log In
-          </Link>
-          {/* Use Shadcn Button inside the Link */}
+          
+          {/* <-- 2. Show UserButton (Avatar) if Signed In --> */}
+          <SignedIn>
+             <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+
+          {/* <-- 3. Show Log In Link if Signed Out --> */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <span className="cursor-pointer whitespace-nowrap text-sm font-medium text-brand-dark transition hover:opacity-75">
+                Log In
+              </span>
+            </SignInButton>
+          </SignedOut>
+
+          {/* Subscribe Button (MailerLite) - remains the same */}
           <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
-            {/* VVV UPDATE THIS HREF VVV */}
             <Link href="https://subscribepage.io/zUEAS9" target="_blank" rel="noopener noreferrer">Subscribe</Link>
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button (Hamburger Icon) */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -86,7 +96,7 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* --- Mobile Menu Overlay --- */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-brand-dark bg-opacity-95 md:hidden">
           <div className="flex justify-end p-6">
@@ -121,16 +131,20 @@ export default function Header() {
                 {link.name}
               </Link>
             ))}
-            <Link
-              href="/login"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-white hover:text-brand-lavender transition"
-            >
-              Log In
-            </Link>
-            {/* Use Shadcn Button in Mobile menu too */}
+            
+            {/* Mobile Log In/Profile */}
+            <SignedIn>
+                 <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+                <SignInButton mode="modal">
+                  <span onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer text-white hover:text-brand-lavender transition">
+                      Log In
+                  </span>
+                </SignInButton>
+            </SignedOut>
+            
             <Button asChild size="lg" className="mt-4 bg-brand-lavender text-brand-dark hover:bg-brand-lavender/90">
-              {/* VVV UPDATE THIS HREF VVV */}
                <Link href="https://subscribepage.io/zUEAS9" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
             </Button>
           </div>
