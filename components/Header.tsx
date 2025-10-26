@@ -4,9 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-// <-- 1. Import Clerk components
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'; 
-
 
 // Simplified nav links
 const navLinks = [
@@ -16,6 +14,10 @@ const navLinks = [
   { name: 'Press Releases', href: '/press' },
   { name: 'About Us', href: '/about' },
 ];
+
+// --- Substack URL UPDATED ---
+const SUBSTACK_URL = "https://substack.com/@piazzifinancialanalysis"; 
+// ----------------------------
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -52,12 +54,10 @@ export default function Header() {
         {/* Right side: AUTH BUTTONS - CLERK INTEGRATION */}
         <div className="hidden flex-shrink-0 items-center gap-6 md:flex">
           
-          {/* <-- 2. Show UserButton (Avatar) if Signed In --> */}
           <SignedIn>
              <UserButton afterSignOutUrl="/" />
           </SignedIn>
 
-          {/* <-- 3. Show Log In Link if Signed Out --> */}
           <SignedOut>
             <SignInButton mode="modal">
               <span className="cursor-pointer whitespace-nowrap text-sm font-medium text-brand-dark transition hover:opacity-75">
@@ -66,9 +66,10 @@ export default function Header() {
             </SignInButton>
           </SignedOut>
 
-          {/* Subscribe Button (MailerLite) - remains the same */}
+          {/* Subscribe Button (Substack) */}
           <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
-            <Link href="https://subscribepage.io/zUEAS9" target="_blank" rel="noopener noreferrer">Subscribe</Link>
+            {/* UPDATED HREF */}
+            <Link href={SUBSTACK_URL} target="_blank" rel="noopener noreferrer">Subscribe</Link>
           </Button>
         </div>
 
@@ -82,7 +83,7 @@ export default function Header() {
             <svg
               className="h-8 w-8"
               fill="none"
-              viewBox="0 0 24"
+              viewBox="0 0 24 24"
               stroke="currentColor"
             >
               <path
@@ -144,8 +145,10 @@ export default function Header() {
                 </SignInButton>
             </SignedOut>
             
+            {/* Mobile Subscribe Button (Substack) */}
             <Button asChild size="lg" className="mt-4 bg-brand-lavender text-brand-dark hover:bg-brand-lavender/90">
-               <Link href="https://subscribepage.io/zUEAS9" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
+               {/* UPDATED HREF */}
+               <Link href={SUBSTACK_URL} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
             </Button>
           </div>
         </div>
