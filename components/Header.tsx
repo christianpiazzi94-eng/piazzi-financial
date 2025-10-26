@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'; 
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 // Simplified nav links
 const navLinks = [
@@ -16,7 +16,7 @@ const navLinks = [
 ];
 
 // --- Substack URL UPDATED ---
-const SUBSTACK_URL = "https://substack.com/@piazzifinancialanalysis"; 
+const SUBSTACK_URL = "https://piazzifinancialanalysis.substack.com";
 // ----------------------------
 
 export default function Header() {
@@ -25,15 +25,15 @@ export default function Header() {
   return (
     <header className="bg-brand-lavender shadow-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        
+
         {/* Left side: Just the Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center">
           <Image
-            src="/logo.svg" 
+            src="/logo.svg"
             alt="Piazzi Financial Analysis Logo"
-            width={168}  
-            height={168} 
-            className="h-24 w-auto" 
+            width={168}
+            height={168}
+            className="h-24 w-auto"
             priority
           />
         </Link>
@@ -53,7 +53,7 @@ export default function Header() {
 
         {/* Right side: AUTH BUTTONS - CLERK INTEGRATION */}
         <div className="hidden flex-shrink-0 items-center gap-6 md:flex">
-          
+
           <SignedIn>
              <UserButton afterSignOutUrl="/" />
           </SignedIn>
@@ -83,7 +83,7 @@ export default function Header() {
             <svg
               className="h-8 w-8"
               fill="none"
-              viewBox="0 0 24 24"
+              viewBox="0 0 24"
               stroke="currentColor"
             >
               <path
@@ -132,7 +132,7 @@ export default function Header() {
                 {link.name}
               </Link>
             ))}
-            
+
             {/* Mobile Log In/Profile */}
             <SignedIn>
                  <UserButton afterSignOutUrl="/" />
@@ -144,7 +144,7 @@ export default function Header() {
                   </span>
                 </SignInButton>
             </SignedOut>
-            
+
             {/* Mobile Subscribe Button (Substack) */}
             <Button asChild size="lg" className="mt-4 bg-brand-lavender text-brand-dark hover:bg-brand-lavender/90">
                {/* UPDATED HREF */}
