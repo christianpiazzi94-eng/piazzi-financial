@@ -22,12 +22,13 @@
         "name": "next"
       }
     ],
-    // --- ADD THESE TWO LINES ---
+    // --- THIS IS THE CRITICAL FIX ---
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      // Define the @/ alias to point to the root folder
+      "@/*": ["./*"] 
     }
-    // -------------------------
+    // --------------------------------
   },
   "include": [
     "next-env.d.ts",

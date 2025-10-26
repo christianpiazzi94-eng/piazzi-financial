@@ -1,12 +1,10 @@
 // app/page.tsx
-// This remains a Server Component for data fetching
+import Hero from '@/components/Hero'; 
+import Section from '@/components/Section'; 
+import InsightDisplay from '@/components/InsightDisplay'; 
 
-import Hero from '../components/Hero';
-import Section from '../components/Section'; // Keep Section for the title maybe
-import InsightDisplay from '../components/InsightDisplay'; // Import the new Client Component
-
-// Import the Sanity client (same as before)
-import { client } from '../sanity/lib/client';
+// CHANGED: Use @/ alias for sanity client path
+import { client } from '@/sanity/lib/client'; 
 
 // Define the expected data structure (same as before)
 interface InsightStub {
@@ -40,8 +38,7 @@ export default async function Home() {
       {/* Render the InsightDisplay Client Component, passing the fetched data */}
       <InsightDisplay allInsights={insights} />
 
-      {/* You could add more static sections below here if needed */}
-      {/* Example:
+      {/* Example static section:
       <Section>
         <h2 className="text-3xl font-bold tracking-tight text-brand-dark">About Us</h2>
         <p className="mt-4 text-slate-600">Some static text here...</p>

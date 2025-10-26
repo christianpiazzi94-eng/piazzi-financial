@@ -1,9 +1,9 @@
 // app/insights/[slug]/page.tsx
-// Use alias path '@/...' assuming it maps to the project root
+// CHANGED: Use @/ alias for sanity client and image helpers
 import { client } from '@/sanity/lib/client';
 import { urlForImage } from '@/sanity/lib/image';
 
-import { PortableText } from '@portabletext/react';
+import { PortableText } from '@portabletext/react'; 
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
@@ -52,10 +52,10 @@ export default async function InsightPage({ params }: { params: { slug: string }
       })
     : 'Date not available';
 
-  // Check if urlForImage exists and returns a builder before calling methods
+  // Generate image URL with fallback
   const imageUrl = insight.mainImage && urlForImage(insight.mainImage)
     ? urlForImage(insight.mainImage)?.width(1200).height(800).url()
-    : undefined; // Set to undefined if image or builder is missing
+    : undefined;
 
   return (
     <article className="mx-auto max-w-3xl px-6 py-12">
@@ -67,7 +67,6 @@ export default async function InsightPage({ params }: { params: { slug: string }
         <span>{formattedDate}</span>
       </div>
 
-      {/* Use imageUrl if it was successfully generated */}
       {imageUrl && (
         <div className="relative mb-8 h-64 w-full overflow-hidden rounded md:h-96">
           <Image
