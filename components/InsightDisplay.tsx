@@ -1,41 +1,47 @@
 // components/InsightDisplay.tsx
-'use client'; // <-- Make this a Client Component
+'use client'; 
 
 import { useState } from 'react';
-import SectionTabs, { type Tab } from './SectionTabs'; // Your existing tabs component
+import SectionTabs, { type Tab } from './SectionTabs'; // <-- 1. RE-IMPORT SectionTabs
 import InsightCard from './InsightCard';             // Your existing card component
 import Section from './Section';                     // Your existing section wrapper
 
-// Define the structure of an insight (matching what page.tsx fetches)
+// Define the structure of an insight
 interface InsightStub {
   _id: string;
   title?: string;
   slug?: { current: string };
   summary?: string;
-  // Add 'categories' if you fetch them later for filtering
+  category?: string; // <-- Must match the interface in page.tsx
 }
 
-// Define the props this component expects: the list of all insights
+// Define the props this component expects
 interface InsightDisplayProps {
   allInsights: InsightStub[];
 }
 
 export default function InsightDisplay({ allInsights }: InsightDisplayProps) {
-  // State to manage the active tab
+  // --- 2. BRING BACK THE STATE ---
   const [activeTab, setActiveTab] = useState<Tab>('All Insights');
 
-  // Placeholder for filtering logic (currently shows all insights)
-  // TODO: Implement actual filtering based on activeTab and insight categories
-  const filteredInsights = allInsights; // In the future, filter this array
+  // --- 3. NEW FILTERING LOGIC ---
+  const filteredInsights = allInsights.filter(insight => {
+    // If tab is "All Insights", show everything
+    if (activeTab === 'All Insights') {
+      return true;
+    }
+    // Otherwise, check if the insight's category (lowercase)
+    // matches the active tab (lowercase)
+    return insight.category?.toLowerCase() === activeTab.toLowerCase();
+  });
 
   return (
     <>
-      {/* Render the tabs, passing state */}
+      {/* --- 4. RENDER TABS HERE --- */}
       <SectionTabs active={activeTab} onChange={setActiveTab} />
 
-      {/* Render the section containing the filtered insight cards */}
+      {/* Render the section containing the filtered insight cards (your "boxes") */}
       <Section>
-        {/* We removed the h2 from here, as it's better placed in page.tsx */}
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredInsights && filteredInsights.length > 0 ? (
             filteredInsights.map((insight) => (
@@ -47,7 +53,8 @@ export default function InsightDisplay({ allInsights }: InsightDisplayProps) {
               />
             ))
           ) : (
-            <p className="text-slate-600 col-span-full"> {/* Span across grid if empty */}
+            // This shows the "No insights found" message
+            <p className="text-slate-600 col-span-full">
               No insights found {activeTab !== 'All Insights' ? `for "${activeTab}"` : 'yet'}.
             </p>
           )}

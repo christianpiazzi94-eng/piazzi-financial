@@ -2,22 +2,20 @@
 import Hero from '@/components/Hero'; 
 import Section from '@/components/Section'; 
 import InsightDisplay from '@/components/InsightDisplay'; 
-
-// CHANGED: Use @/ alias for sanity client path
 import { client } from '@/sanity/lib/client'; 
 
-// Define the expected data structure (same as before)
+// Define the expected data structure (with 'category')
 interface InsightStub {
   _id: string;
   title?: string;
   slug?: { current: string };
   summary?: string;
-  // Add categories later if needed for filtering
+  category?: string; // <-- This is important
 }
 
-// Async function to get insights (same as before)
+// Async function to get insights (fetches 'category')
 async function getInsights(): Promise<InsightStub[]> {
-  const query = `*[_type == "insight"]{ _id, title, slug, summary }`; // Fetch necessary fields
+  const query = `*[_type == "insight"]{ _id, title, slug, summary, category }`; // <-- Fetches 'category'
   try {
     const insights = await client.fetch<InsightStub[]>(query);
     return insights;
@@ -35,15 +33,11 @@ export default async function Home() {
     <>
       <Hero />
 
-      {/* Render the InsightDisplay Client Component, passing the fetched data */}
+      {/* This is the main change. 
+        We pass ALL insights to InsightDisplay, which will handle the tabs and filtering.
+      */}
       <InsightDisplay allInsights={insights} />
 
-      {/* Example static section:
-      <Section>
-        <h2 className="text-3xl font-bold tracking-tight text-brand-dark">About Us</h2>
-        <p className="mt-4 text-slate-600">Some static text here...</p>
-      </Section>
-      */}
     </>
   );
 }
