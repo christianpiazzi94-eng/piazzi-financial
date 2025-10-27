@@ -1,14 +1,14 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script'; // Import Script for GA4
+import Script from 'next/script';
 import './globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
 
-// Use @/ alias now that tsconfig is fixed
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import CookieConsentBanner from '@/components/CookieConsentBanner'; // <-- IMPORT BANNER
+// CORRECTED PATHS
+import Header from '../components/Header';
+import Footer from '../components/Footer'; // <--- THIS LINE IS NOW CORRECT
+import CookieConsentBanner from '../components/CookieConsentBanner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -31,7 +31,6 @@ export default function RootLayout({
           {/* GA4 Tracking Scripts (Blocked until consent is given) */}
           {GA_MEASUREMENT_ID && (
             <>
-              {/* Google Tag Manager initialization script */}
               <Script
                 strategy="lazyOnload"
                 src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
@@ -45,7 +44,6 @@ export default function RootLayout({
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
                     gtag('config', '${GA_MEASUREMENT_ID}', {
-                      // Block initial pageview until consent is given
                       'anonymize_ip': true, 
                       'cookie_flags': 'SameSite=None; Secure',
                       'send_page_view': false 
@@ -60,7 +58,7 @@ export default function RootLayout({
           <Header />
           <main>{children}</main>
           <Footer />
-          <CookieConsentBanner /> {/* <-- ADD BANNER HERE */}
+          <CookieConsentBanner />
         </body>
       </html>
     </ClerkProvider>
