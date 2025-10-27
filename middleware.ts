@@ -1,22 +1,15 @@
-// middleware.ts
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// We define ALL public routes to prevent redirection.
-export default clerkMiddleware({
-  publicRoutes: [
-    '/',
-    '/insights(.*)',
-    '/about',
-    '/materials',
-    '/portfolio',
-    '/press',
-    '/subscribe',
-    '/login(.*)', // Must include the catch-all for Clerk's internal flow
-    '/signup(.*)', // Must include the catch-all for Clerk's internal flow
-  ],
-});
+// This simple version makes all routes public by default.
+// It will fix your build error.
+export default clerkMiddleware();
 
 export const config = {
-  // Match all paths except static assets and Next.js internals
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    // Skip Next.js internal files and static assets
+    '/((?!.*\\..*|_next).*)', 
+    // Run on all API routes
+    '/', 
+    '/(api|trpc)(.*)'
+  ],
 };
