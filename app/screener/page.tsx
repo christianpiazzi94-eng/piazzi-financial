@@ -9,8 +9,13 @@ export const dynamic = 'force-dynamic';
 
 const REQUIRED_ROLE = 'screener';
 
-export default function ScreenerPage() {
-  // 1. Get the current session claims directly
+// FIX: Make the component function ASYNC
+export default async function ScreenerPage() {
+  
+  // 1. Get the current session claims directly using the result of auth()
+  // NOTE: When called like this in a Server Component, auth() returns the
+  // necessary object directly without needing await in older Next versions, 
+  // but we still need the component to be async.
   const { userId, sessionClaims } = auth(); 
 
   // 2. CHECK 1: Authentication (Is user logged in?)
@@ -21,7 +26,8 @@ export default function ScreenerPage() {
 
   // 3. CHECK 2: Authorization (Does user have the right role?)
   const userRole = sessionClaims?.metadata?.role as AppRole;
-  const isAuthorized = userRole === REQUIRED_ROLE || userRole === 'bundle';
+  // Check both the primary role and the 'bundle' for access
+  const isAuthorized = userRole === REQUIRED_ROLE || userRole === 'bundle'; 
 
   if (!isAuthorized) {
       console.log(`ACCESS DENIED: User Role [${userRole}] does not match Required [${REQUIRED_ROLE}]`);
