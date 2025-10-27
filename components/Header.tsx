@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
-// Simplified nav links
+// Simplified nav links (No change here)
 const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'Materials', href: '/materials' },
@@ -26,7 +26,7 @@ export default function Header() {
     <header className="bg-brand-lavender shadow-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
 
-        {/* Left side: Just the Logo */}
+        {/* Left side: Just the Logo (No change) */}
         <Link href="/" className="flex flex-shrink-0 items-center">
           <Image
             src="/logo.svg"
@@ -38,8 +38,13 @@ export default function Header() {
           />
         </Link>
 
-        {/* Center: Desktop Nav Links */}
-        <div className="hidden items-center gap-6 md:flex">
+        {/* --- CHANGE: We have removed the separate "Center" div --- */}
+
+
+        {/* --- CHANGE: Nav links are now INSIDE this "Right side" div --- */}
+        <div className="hidden flex-shrink-0 items-center gap-6 md:flex">
+
+          {/* These are your nav links, now on the right */}
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -49,11 +54,11 @@ export default function Header() {
               {link.name}
             </Link>
           ))}
-        </div>
 
-        {/* Right side: AUTH BUTTONS - CLERK INTEGRATION */}
-        <div className="hidden flex-shrink-0 items-center gap-6 md:flex">
+          {/* This is a visual separator (optional, but nice) */}
+          <div className="h-6 w-px bg-gray-300" />
 
+          {/* Your original Auth Buttons (No change to these) */}
           <SignedIn>
              <UserButton afterSignOutUrl="/" />
           </SignedIn>
@@ -66,14 +71,12 @@ export default function Header() {
             </SignInButton>
           </SignedOut>
 
-          {/* Subscribe Button (Substack) */}
           <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
-            {/* UPDATED HREF */}
             <Link href={SUBSTACK_URL} target="_blank" rel="noopener noreferrer">Subscribe</Link>
           </Button>
         </div>
 
-        {/* Mobile Menu Button (Hamburger Icon) */}
+        {/* Mobile Menu Button (No change) */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -97,9 +100,10 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* --- Mobile Menu Overlay --- */}
+      {/* --- Mobile Menu Overlay (No change) --- */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-brand-dark bg-opacity-95 md:hidden">
+          {/* ... all your mobile menu code remains exactly the same ... */}
           <div className="flex justify-end p-6">
             <button
               onClick={() => setIsMobileMenuOpen(false)}
@@ -132,8 +136,6 @@ export default function Header() {
                 {link.name}
               </Link>
             ))}
-
-            {/* Mobile Log In/Profile */}
             <SignedIn>
                  <UserButton afterSignOutUrl="/" />
             </SignedIn>
@@ -144,10 +146,7 @@ export default function Header() {
                   </span>
                 </SignInButton>
             </SignedOut>
-
-            {/* Mobile Subscribe Button (Substack) */}
             <Button asChild size="lg" className="mt-4 bg-brand-lavender text-brand-dark hover:bg-brand-lavender/90">
-               {/* UPDATED HREF */}
                <Link href={SUBSTACK_URL} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Subscribe</Link>
             </Button>
           </div>

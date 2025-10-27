@@ -24,21 +24,29 @@ export default function CookieConsentBanner() {
 
     return (
         <CookieConsent
-            // Styling to match your brand (Brand-Dark button on Brand-Lavender bar)
+            // --- STYLE CHANGES ARE HERE ---
             style={{ 
-                background: "rgb(211, 211, 255)", 
-                color: "#1e1b4b", // Dark text color
+                background: "#202020", // Neutral Dark Grey Background
+                color: "#FFFFFF",      // White Text
                 alignItems: 'center',
                 padding: '10px 0',
             }}
             buttonStyle={{ 
-                background: "#1e1b4b", 
-                color: "white", 
+                background: "#FFFFFF", // White Button Background
+                color: "#202020",      // Dark Button Text
                 borderRadius: "8px", 
                 fontSize: "13px",
                 fontWeight: "600",
                 padding: "8px 16px"
             }}
+            // --- NEW: Added styling for the decline button ---
+            declineButtonStyle={{
+                background: "none", // No background
+                color: "#FFFFFF",     // White text
+                fontSize: "13px",
+                fontWeight: "600",
+            }}
+            // ---------------------------------
             location="bottom"
             buttonText="Accept & Continue"
             declineButtonText="Only Necessary"
