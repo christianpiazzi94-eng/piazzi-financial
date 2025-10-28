@@ -2,9 +2,28 @@
 import Link from 'next/link';
 import { currentUser } from '@clerk/nextjs/server';
 import { Button } from '@/components/ui/button';
-import { client } from '@/sanity/lib/client'; // Import your Sanity client
+import { client } from '@/sanity/lib/client';
+import { groq } from 'next-sanity';
+import { PortableText } from '@portabletext/react'; // <-- Import the rich text renderer
 
-// --- 1. The Paywall Component ---
+// --- 1. Define the Types for our Sanity Data ---
+interface DeepDive {
+  title?: string;
+  ticker?: string;
+  researchBody?: any[]; // This is the Portable Text (Rich Text) array
+}
+
+// --- 2. The Sanity Query ---
+// This query finds the deep dive by its slug
+const deepDiveQuery = groq`
+  *[_type == "deepDive" && slug.current == $slug][0] {
+    title,
+    ticker,
+    researchBody
+  }
+`;
+
+// --- 3. The Paywall Component (No Change) ---
 function Paywall() {
   return (
     <div className="text-center max-w-lg mx-auto p-8 border rounded-lg shadow-md bg-gray-50">
@@ -14,7 +33,6 @@ function Paywall() {
       <p className="text-lg text-gray-700 mb-6">
         This premium deep dive is for subscribers only.
       </p>
-      {/* This will eventually link to your Stripe pricing page */}
       <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
         <Link href="/">View Subscription Plans</Link>
       </Button>
@@ -22,52 +40,57 @@ function Paywall() {
   );
 }
 
-// --- 2. The Premium Content Component ---
-// This is shown to users who HAVE paid.
-// We will update this later to show your research from Sanity.
-async function PremiumDeepDiveContent({ slug }: { slug: string }) {
-  // TODO: Fetch the actual deep dive data from Sanity using the slug
-  
+// --- 4. The Premium Content Component (Updated) ---
+// It now accepts the 'deepDive' data as a prop
+async function PremiumDeepDiveContent({ deepDive }: { deepDive: DeepDive }) {
+  const { title, ticker, researchBody } = deepDive;
+
   return (
     <div>
-      <h1 className="text-4xl font-bold mb-4 capitalize">
-        {slug.replace(/-/g, ' ')}
+      <h1 className="text-4xl font-bold mb-4">
+        {title} ({ticker})
       </h1>
-      <div className="prose prose-lg mt-8">
-        <p>
-          This is the premium, subscribers-only content for the deep dive.
-        </p>
-        <p>
-          Here is where your full company analysis from Sanity will be displayed.
-        </p>
+      
+      {/* This is your Rich Text content.
+        The <PortableText> component renders your Sanity 'researchBody'
+        The 'prose' classes add beautiful default styling for text.
+      */}
+      <div className="prose prose-lg dark:prose-invert mt-8 max-w-none">
+        <PortableText value={researchBody || []} />
       </div>
     </div>
   );
 }
 
-// --- 3. The Main Page (Server Component) ---
+// --- 5. The Main Page (Updated) ---
+// It now fetches data from Sanity before rendering
 export default async function DeepDivePage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   
   // Get the current user from Clerk
   const user = await currentUser();
-
-  // Get the user's role from their Clerk metadata
   const userRole = user?.publicMetadata.role as string;
-
-  // --- THIS IS THE NEW LOGIC ---
-  // It checks for 'deepDive' or 'bundle'
   const hasAccess = userRole === 'deepDive' || userRole === 'bundle';
+
+  // If the user doesn't have access, show the paywall immediately.
+  if (!hasAccess) {
+    return (
+      <div className="mx-auto max-w-6xl p-8">
+        <Paywall />
+      </div>
+    );
+  }
+
+  // --- If user HAS access, fetch the data ---
+  const deepDive = await client.fetch<DeepDive>(deepDiveQuery, { slug });
+
+  if (!deepDive) {
+    return <div className="mx-auto max-w-6xl p-8">Deep dive not found.</div>;
+  }
 
   return (
     <div className="mx-auto max-w-6xl p-8">
-      {/* If hasAccess is true, show the content.
-        If hasAccess is false, show the paywall.
-      */}
-      {hasAccess ? (
-        <PremiumDeepDiveContent slug={params.slug} />
-      ) : (
-        <Paywall />
-      )}
+      <PremiumDeepDiveContent deepDive={deepDive} />
     </div>
   );
 }
