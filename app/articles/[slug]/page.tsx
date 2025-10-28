@@ -6,8 +6,7 @@ import { client } from '@/sanity/lib/client';
 import { groq } from 'next-sanity';
 import { PortableText } from '@portabletext/react';
 
-// Interface remains the same
-interface DeepDive { /* ... */ }
+// --- 1. Define the Types for our Sanity Data ---
 interface DeepDive {
   title?: string;
   ticker?: string;
@@ -15,9 +14,7 @@ interface DeepDive {
   isFree?: boolean;
 }
 
-
-// Query remains the same
-const deepDiveQuery = groq` /* ... */ `;
+// --- 2. The Sanity Query ---
 const deepDiveQuery = groq`
   *[_type == "deepDive" && slug.current == $slug][0] {
     title,
@@ -27,9 +24,7 @@ const deepDiveQuery = groq`
   }
 `;
 
-
-// Paywall component remains the same
-function Paywall() { /* ... */ }
+// --- 3. The Paywall Component ---
 function Paywall() {
   return (
     <div className="text-center max-w-lg mx-auto p-8 border rounded-lg shadow-md bg-gray-50">
@@ -46,9 +41,7 @@ function Paywall() {
   );
 }
 
-
-// Premium content component remains the same
-async function PremiumDeepDiveContent({ deepDive }: { deepDive: DeepDive }) { /* ... */ }
+// --- 4. The Premium Content Component ---
 async function PremiumDeepDiveContent({ deepDive }: { deepDive: DeepDive }) {
   const { title, ticker, researchBody } = deepDive;
   return (
@@ -63,8 +56,7 @@ async function PremiumDeepDiveContent({ deepDive }: { deepDive: DeepDive }) {
   );
 }
 
-
-// Main page component - updated access logic
+// --- 5. The Main Page (UPDATED LOGIC) ---
 export default async function DeepDiveArticlePage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const deepDive = await client.fetch<DeepDive>(deepDiveQuery, { slug });
@@ -77,10 +69,8 @@ export default async function DeepDiveArticlePage({ params }: { params: { slug: 
   const user = await currentUser();
   const userRole = user?.publicMetadata.role as string;
 
-  // --- UPDATED ACCESS LOGIC ---
   // User needs 'deepDive' or 'bundle' role to read paid articles
   const hasPaidAccess = userRole === 'deepDive' || userRole === 'bundle';
-  // ---------------------------
 
   const canView = isPublic || hasPaidAccess;
 
