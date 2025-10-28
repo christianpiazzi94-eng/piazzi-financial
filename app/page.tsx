@@ -1,43 +1,47 @@
 // app/page.tsx
-import Hero from '@/components/Hero'; 
-import Section from '@/components/Section'; 
-import InsightDisplay from '@/components/InsightDisplay'; 
-import { client } from '@/sanity/lib/client'; 
+import Hero from '@/components/Hero';
+import InsightDisplay from '@/components/InsightDisplay';
+import { client } from '@/sanity/lib/client';
 
-// Define the expected data structure (with 'category')
-interface InsightStub {
+// --- 1. UPDATE INTERFACE: Add _type and categories ---
+interface ContentStub {
   _id: string;
+  _type: 'insight' | 'screener' | 'deepDive'; // Type identifier
   title?: string;
   slug?: { current: string };
   summary?: string;
-  category?: string; // <-- This is important
+  categories?: string[]; // <-- ADDED: To hold category names
 }
 
-// Async function to get insights (fetches 'category')
-async function getInsights(): Promise<InsightStub[]> {
-  const query = `*[_type == "insight"]{ _id, title, slug, summary, category }`; // <-- Fetches 'category'
+// --- 2. UPDATE QUERY: Fetch _type and category names ---
+async function getAllContent(): Promise<ContentStub[]> {
+  const query = `*[_type in ["insight", "screener", "deepDive"]]{
+    _id,
+    _type, // Get the document type
+    title,
+    slug,
+    summary,
+    // Use a projection to get category titles ONLY from 'insight' documents
+    "categories": categories[]->title 
+  }`;
   try {
-    const insights = await client.fetch<InsightStub[]>(query);
-    return insights;
+    const content = await client.fetch<ContentStub[]>(query);
+    return content;
   } catch (error) {
-    console.error("Failed to fetch insights:", error);
+    console.error("Failed to fetch content:", error);
     return [];
   }
 }
 
 // The Home component fetches data and renders InsightDisplay
 export default async function Home() {
-  const insights = await getInsights();
+  const allContent = await getAllContent();
 
   return (
     <>
       <Hero />
-
-      {/* This is the main change. 
-        We pass ALL insights to InsightDisplay, which will handle the tabs and filtering.
-      */}
-      <InsightDisplay allInsights={insights} />
-
+      {/* Pass all fetched content to InsightDisplay */}
+      <InsightDisplay allContent={allContent} />
     </>
   );
 }

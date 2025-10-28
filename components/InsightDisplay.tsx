@@ -1,61 +1,72 @@
 // components/InsightDisplay.tsx
-'use client'; 
+'use client';
 
 import { useState } from 'react';
-import SectionTabs, { type Tab } from './SectionTabs'; // <-- 1. RE-IMPORT SectionTabs
-import InsightCard from './InsightCard';             // Your existing card component
-import Section from './Section';                     // Your existing section wrapper
+import SectionTabs, { type Tab } from './SectionTabs';
+import InsightCard from './InsightCard';
+import Section from './Section';
 
-// Define the structure of an insight
-interface InsightStub {
+// --- 1. UPDATE INTERFACE: Add _type and categories ---
+interface ContentStub {
   _id: string;
+  _type: 'insight' | 'screener' | 'deepDive';
   title?: string;
   slug?: { current: string };
   summary?: string;
-  category?: string; // <-- Must match the interface in page.tsx
+  categories?: string[]; // <-- ADDED
 }
 
-// Define the props this component expects
 interface InsightDisplayProps {
-  allInsights: InsightStub[];
+  allContent: ContentStub[];
 }
 
-export default function InsightDisplay({ allInsights }: InsightDisplayProps) {
-  // --- 2. BRING BACK THE STATE ---
+export default function InsightDisplay({ allContent }: InsightDisplayProps) {
   const [activeTab, setActiveTab] = useState<Tab>('All Insights');
 
-  // --- 3. NEW FILTERING LOGIC ---
-  const filteredInsights = allInsights.filter(insight => {
-    // If tab is "All Insights", show everything
+  // --- 2. NEW, MORE ROBUST FILTERING LOGIC ---
+  const filteredContent = allContent.filter(item => {
+    // If "All Insights" is selected, show everything
     if (activeTab === 'All Insights') {
       return true;
     }
-    // Otherwise, check if the insight's category (lowercase)
-    // matches the active tab (lowercase)
-    return insight.category?.toLowerCase() === activeTab.toLowerCase();
+
+    // Check for _type match (for Screeners and Deep Dives)
+    if (item._type === 'screener' && activeTab === 'Screeners') {
+      return true;
+    }
+    if (item._type === 'deepDive' && activeTab === 'Deep Dives') {
+      return true;
+    }
+
+    // Check for category match (for Insights)
+    if (item._type === 'insight' && item.categories) {
+      // Check if any of the item's categories match the active tab
+      return item.categories.some(categoryTitle => categoryTitle === activeTab);
+    }
+    
+    // If no match, hide it
+    return false;
   });
 
   return (
     <>
-      {/* --- 4. RENDER TABS HERE --- */}
       <SectionTabs active={activeTab} onChange={setActiveTab} />
 
-      {/* Render the section containing the filtered insight cards (your "boxes") */}
       <Section>
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredInsights && filteredInsights.length > 0 ? (
-            filteredInsights.map((insight) => (
+          {filteredContent && filteredContent.length > 0 ? (
+            filteredContent.map((item) => (
               <InsightCard
-                key={insight._id}
-                title={insight.title ?? 'Untitled Insight'}
-                summary={insight.summary}
-                slug={insight.slug?.current}
+                key={item._id}
+                _type={item._type}
+                title={item.title ?? `Untitled ${item._type}`}
+                summary={item.summary}
+                slug={item.slug?.current}
               />
             ))
           ) : (
-            // This shows the "No insights found" message
             <p className="text-slate-600 col-span-full">
-              No insights found {activeTab !== 'All Insights' ? `for "${activeTab}"` : 'yet'}.
+              No content found {activeTab !== 'All Insights' ? `for "${activeTab}"` : 'yet'}.
             </p>
           )}
         </div>

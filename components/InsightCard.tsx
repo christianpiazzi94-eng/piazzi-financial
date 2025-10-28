@@ -3,51 +3,66 @@ import Link from 'next/link';
 import {
   Card,
   CardContent,
-  CardDescription, // Optional: for subtitle or date
-  CardFooter,    // Optional: for author or category
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"; // Import Shadcn card components
+} from "@/components/ui/card";
 
-// Define the props the component expects (same as before)
+// --- 1. UPDATE PROPS: Add _type ---
 interface InsightCardProps {
+  _type: 'insight' | 'screener' | 'deepDive'; // <-- ADDED
   title: string;
   summary?: string;
   slug?: string;
-  // Add other props like author, date, category later if needed
 }
 
-export default function InsightCard({ title, summary, slug }: InsightCardProps) {
-  
-  // Build the content using Shadcn Card components
+export default function InsightCard({ _type, title, summary, slug }: InsightCardProps) {
+
+  // --- 2. DETERMINE LINK PATH BASED ON _type ---
+  let href = '';
+  if (slug) {
+    switch (_type) {
+      case 'screener':
+        href = `/screeners/${slug}`; // Link to /screeners/[slug]
+        break;
+      case 'deepDive':
+        href = `/deep-dives/${slug}`; // Link to /deep-dives/[slug]
+        break;
+      case 'insight':
+      default:
+        href = `/insights/${slug}`; // Default to /insights/[slug]
+        break;
+    }
+  }
+  // ------------------------------------------
+
   const cardContent = (
-    <Card className="flex h-full flex-col transition hover:shadow-lg"> {/* Apply flex layout */}
+    <Card className="flex h-full flex-col transition hover:shadow-lg">
       <CardHeader>
-        <CardTitle className="text-lg line-clamp-2">{title}</CardTitle> {/* Limit title lines */}
-        {/* You could put a subtitle or date in CardDescription if needed */}
-        {/* <CardDescription>Optional Subtitle/Date</CardDescription> */}
+        <CardTitle className="text-lg line-clamp-2">{title}</CardTitle>
       </CardHeader>
-      {summary && ( // Only add CardContent if summary exists
-        <CardContent className="flex-grow text-sm text-slate-600"> {/* flex-grow makes content take space */}
-          <p className="line-clamp-3">{summary}</p> {/* Limit summary lines */}
+      {summary && (
+        <CardContent className="flex-grow text-sm text-slate-600">
+          <p className="line-clamp-3">{summary}</p>
         </CardContent>
       )}
-      {/* CardFooter could be used for author/category later */}
       <CardFooter className="text-xs text-slate-400">
-        <p>Section • Date</p> {/* Placeholder */}
+         {/* Display the type in the footer (optional) */}
+        <p>{_type.charAt(0).toUpperCase() + _type.slice(1)} • Date</p>
       </CardFooter>
     </Card>
   );
 
-  // If a slug exists, wrap the card content in a link
-  if (slug) {
+  // If a valid href was created, wrap in a link
+  if (href) {
     return (
-      <Link href={`/insights/${slug}`} className="block h-full"> {/* Ensure link takes full height */}
+      <Link href={href} className="block h-full">
         {cardContent}
       </Link>
     );
   }
 
-  // Otherwise, just render the card content without a link
+  // Otherwise, render card without link
   return cardContent;
 }
