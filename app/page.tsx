@@ -2,27 +2,29 @@
 import Hero from '@/components/Hero';
 import InsightDisplay from '@/components/InsightDisplay';
 import { client } from '@/sanity/lib/client';
+import { currentUser } from '@clerk/nextjs/server'; // <-- Import currentUser
 
-// --- 1. UPDATE INTERFACE: Add _type and categories ---
+// Interface includes _type, categories, and isFree
 interface ContentStub {
   _id: string;
-  _type: 'insight' | 'screener' | 'deepDive'; // Type identifier
+  _type: 'insight' | 'screener' | 'deepDive';
   title?: string;
   slug?: { current: string };
   summary?: string;
-  categories?: string[]; // <-- ADDED: To hold category names
+  categories?: string[];
+  isFree?: boolean; // <-- Need isFree for filtering and blurring
 }
 
-// --- 2. UPDATE QUERY: Fetch _type and category names ---
+// Query fetches _type, categories, and isFree
 async function getAllContent(): Promise<ContentStub[]> {
   const query = `*[_type in ["insight", "screener", "deepDive"]]{
     _id,
-    _type, // Get the document type
+    _type,
     title,
     slug,
     summary,
-    // Use a projection to get category titles ONLY from 'insight' documents
-    "categories": categories[]->title 
+    "categories": categories[]->title,
+    isFree // <-- Fetch isFree
   }`;
   try {
     const content = await client.fetch<ContentStub[]>(query);
@@ -33,15 +35,20 @@ async function getAllContent(): Promise<ContentStub[]> {
   }
 }
 
-// The Home component fetches data and renders InsightDisplay
 export default async function Home() {
   const allContent = await getAllContent();
+
+  // --- GET USER ROLE ---
+  const user = await currentUser();
+  const userRole = user?.publicMetadata.role as string; // e.g., 'screener', 'deepDive', 'bundle'
+  // ---------------------
 
   return (
     <>
       <Hero />
-      {/* Pass all fetched content to InsightDisplay */}
-      <InsightDisplay allContent={allContent} />
+      {/* --- PASS USER ROLE DOWN --- */}
+      <InsightDisplay allContent={allContent} userRole={userRole} />
+      {/* ------------------------- */}
     </>
   );
 }

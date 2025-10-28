@@ -4,6 +4,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import { Button } from '@/components/ui/button';
 import { client } from '@/sanity/lib/client'; // Import your Sanity client
 import { groq } from 'next-sanity'; // Import groq
+import { cn } from "@/lib/utils"; // Import cn utility
 
 // --- 1. Define the Types for our Sanity Data ---
 interface Stock {
@@ -12,6 +13,7 @@ interface Stock {
   ticker?: string;
   slug?: { current: string };
   summary?: string;
+  isFree?: boolean; // Fetch isFree for each stock (set up in schema)
 }
 
 interface Screener {
@@ -20,8 +22,6 @@ interface Screener {
 }
 
 // --- 2. The Sanity Query ---
-// This query finds the screener by its slug and also fetches
-// all the data from the 'deepDives' that are referenced in the 'stockList'
 const screenerQuery = groq`
   *[_type == "screener" && slug.current == $slug][0] {
     title,
@@ -30,20 +30,21 @@ const screenerQuery = groq`
       title,
       ticker,
       slug,
-      summary
+      summary,
+      isFree
     }
   }
 `;
 
-// --- 3. The Paywall Component (No Change) ---
-function Paywall() {
+// --- 3. The Paywall Component ---
+function Paywall() { 
   return (
     <div className="text-center max-w-lg mx-auto p-8 border rounded-lg shadow-md bg-gray-50">
       <h2 className="text-2xl font-bold text-brand-dark mb-4">
         Access Restricted
       </h2>
       <p className="text-lg text-gray-700 mb-6">
-        This premium screener is for subscribers only.
+        Viewing screener details requires a subscription.
       </p>
       <Button asChild className="bg-brand-dark text-white hover:bg-brand-dark/90">
         <Link href="/">View Subscription Plans</Link>
@@ -52,10 +53,12 @@ function Paywall() {
   );
 }
 
-// --- 4. The Premium Content Component (Updated) ---
-// It now accepts the 'screener' data as a prop
-async function PremiumScreenerContent({ screener }: { screener: Screener }) {
+// --- 4. The Premium Content Component ---
+async function PremiumScreenerContent({ screener, userRole }: { screener: Screener, userRole?: string }) {
   const { title, stockList } = screener;
+
+  // Blur list items if user does NOT have screener or bundle access
+  const hasScreenerAccess = userRole === 'screener' || userRole === 'bundle';
 
   return (
     <div>
@@ -64,18 +67,31 @@ async function PremiumScreenerContent({ screener }: { screener: Screener }) {
       {/* This is your list of stocks */}
       <div className="mt-8 space-y-4">
         {stockList && stockList.length > 0 ? (
-          stockList.map((stock) => (
-            <Link 
-              key={stock._id} 
-              href={`/deep-dives/${stock.slug?.current}`} 
-              className="block p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <h3 className="text-2xl font-semibold text-brand-dark">
-                {stock.title} ({stock.ticker})
-              </h3>
-              <p className="text-gray-600 mt-2">{stock.summary}</p>
-            </Link>
-          ))
+          stockList.map((stock) => {
+            // Determine blur for individual stock title
+            const shouldBlurStock = !hasScreenerAccess && !stock.isFree; // Blur if not free and no access
+
+            return (
+              <Link
+                key={stock._id}
+                href={`/articles/${stock.slug?.current}`} 
+                className={cn(
+                  "block p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow",
+                  shouldBlurStock && "pointer-events-none" // Make blurred links unclickable
+                )}
+              >
+                {/* --- APPLY BLUR TO TITLE --- */}
+                <h3 className={cn(
+                  "text-2xl font-semibold text-brand-dark",
+                   shouldBlurStock && "filter blur-sm select-none"
+                )}>
+                  {stock.title} ({stock.ticker})
+                </h3>
+                {/* --------------------------- */}
+                <p className="text-gray-600 mt-2">{stock.summary}</p>
+              </Link>
+            );
+          })
         ) : (
           <p>No stocks have been added to this screener yet.</p>
         )}
@@ -84,19 +100,17 @@ async function PremiumScreenerContent({ screener }: { screener: Screener }) {
   );
 }
 
-// --- 5. The Main Page (Updated) ---
-// It now fetches data from Sanity before rendering
+// --- 5. The Main Page (Server Component) ---
 export default async function ScreenerPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   
-  // Get the current user from Clerk
   const user = await currentUser();
   const userRole = user?.publicMetadata.role as string;
-  const hasAccess = userRole === 'screener' || userRole === 'bundle';
 
-  // If the user doesn't have access, show the paywall immediately.
-  // No need to fetch data from Sanity.
-  if (!hasAccess) {
+  // ACCESS CHECK FOR THE WHOLE PAGE
+  const hasPageAccess = userRole === 'screener' || userRole === 'bundle';
+
+  if (!hasPageAccess) {
     return (
       <div className="mx-auto max-w-6xl p-8">
         <Paywall />
@@ -104,7 +118,7 @@ export default async function ScreenerPage({ params }: { params: { slug: string 
     );
   }
 
-  // --- If user HAS access, fetch the data ---
+  // If user HAS access, fetch the data
   const screener = await client.fetch<Screener>(screenerQuery, { slug });
 
   if (!screener) {
@@ -113,7 +127,7 @@ export default async function ScreenerPage({ params }: { params: { slug: string 
 
   return (
     <div className="mx-auto max-w-6xl p-8">
-      <PremiumScreenerContent screener={screener} />
+      <PremiumScreenerContent screener={screener} userRole={userRole} />
     </div>
   );
 }

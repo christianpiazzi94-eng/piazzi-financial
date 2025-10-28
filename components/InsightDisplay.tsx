@@ -6,52 +6,48 @@ import SectionTabs, { type Tab } from './SectionTabs';
 import InsightCard from './InsightCard';
 import Section from './Section';
 
-// --- 1. UPDATE INTERFACE: Add _type and categories ---
 interface ContentStub {
   _id: string;
   _type: 'insight' | 'screener' | 'deepDive';
   title?: string;
   slug?: { current: string };
   summary?: string;
-  categories?: string[]; // <-- ADDED
+  categories?: string[];
+  isFree?: boolean;
 }
 
 interface InsightDisplayProps {
   allContent: ContentStub[];
+  userRole?: string;
 }
 
-export default function InsightDisplay({ allContent }: InsightDisplayProps) {
+export default function InsightDisplay({ allContent, userRole }: InsightDisplayProps) {
   const [activeTab, setActiveTab] = useState<Tab>('All Insights');
 
-  // --- 2. NEW, MORE ROBUST FILTERING LOGIC ---
+  // --- NEW FILTER LOGIC ---
   const filteredContent = allContent.filter(item => {
-    // If "All Insights" is selected, show everything
     if (activeTab === 'All Insights') {
-      return true;
+        // Show Screeners, Insights, and *only* FREE Deep Dives
+        return item._type === 'screener' || item._type === 'insight' || (item._type === 'deepDive' && item.isFree === true);
     }
 
-    // Check for _type match (for Screeners and Deep Dives)
-    if (item._type === 'screener' && activeTab === 'Screeners') {
-      return true;
-    }
-    if (item._type === 'deepDive' && activeTab === 'Deep Dives') {
-      return true;
+    // Show Screener lists for BOTH "Screeners" tab AND "Deep Dives" tab
+    if (activeTab === 'Screeners' || activeTab === 'Deep Dives') {
+        return item._type === 'screener';
     }
 
-    // Check for category match (for Insights)
+    // Other tabs filter Insights by category
     if (item._type === 'insight' && item.categories) {
-      // Check if any of the item's categories match the active tab
-      return item.categories.some(categoryTitle => categoryTitle === activeTab);
+        return item.categories.some(categoryTitle => categoryTitle === activeTab);
     }
-    
-    // If no match, hide it
+
     return false;
   });
+  // --------------------------
 
   return (
     <>
       <SectionTabs active={activeTab} onChange={setActiveTab} />
-
       <Section>
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredContent && filteredContent.length > 0 ? (
@@ -62,6 +58,8 @@ export default function InsightDisplay({ allContent }: InsightDisplayProps) {
                 title={item.title ?? `Untitled ${item._type}`}
                 summary={item.summary}
                 slug={item.slug?.current}
+                isFree={item.isFree}
+                userRole={userRole}
               />
             ))
           ) : (

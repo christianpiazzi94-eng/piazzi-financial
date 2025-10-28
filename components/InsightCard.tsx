@@ -3,44 +3,60 @@ import Link from 'next/link';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils"; // Import cn utility if you use shadcn
 
-// --- 1. UPDATE PROPS: Add _type ---
 interface InsightCardProps {
-  _type: 'insight' | 'screener' | 'deepDive'; // <-- ADDED
+  _type: 'insight' | 'screener' | 'deepDive';
   title: string;
   summary?: string;
   slug?: string;
+  isFree?: boolean; // From Sanity
+  userRole?: string; // From Clerk
 }
 
-export default function InsightCard({ _type, title, summary, slug }: InsightCardProps) {
+export default function InsightCard({ _type, title, summary, slug, isFree, userRole }: InsightCardProps) {
 
-  // --- 2. DETERMINE LINK PATH BASED ON _type ---
+  // --- BLUR LOGIC ---
+  // Should we blur the title?
+  // Blur if it's NOT free AND the user does NOT have ANY paid subscription
+  const shouldBlur = !isFree && !userRole; // Simple: Blur if not free and not logged in with *any* role.
+  // More specific (allows free users to see titles?):
+  // const hasPaidAccess = userRole === 'screener' || userRole === 'deepDive' || userRole === 'bundle';
+  // const shouldBlur = !isFree && !hasPaidAccess;
+  // --------------------
+
+  // Determine link path
   let href = '';
   if (slug) {
     switch (_type) {
       case 'screener':
-        href = `/screeners/${slug}`; // Link to /screeners/[slug]
+        href = `/screeners/${slug}`;
         break;
       case 'deepDive':
-        href = `/deep-dives/${slug}`; // Link to /deep-dives/[slug]
+        href = `/articles/${slug}`; // <-- Use new articles path
         break;
       case 'insight':
       default:
-        href = `/insights/${slug}`; // Default to /insights/[slug]
+        href = `/insights/${slug}`;
         break;
     }
   }
-  // ------------------------------------------
 
   const cardContent = (
     <Card className="flex h-full flex-col transition hover:shadow-lg">
       <CardHeader>
-        <CardTitle className="text-lg line-clamp-2">{title}</CardTitle>
+        {/* --- APPLY BLUR HERE using cn utility and Tailwind class --- */}
+        <CardTitle className={cn(
+          "text-lg line-clamp-2",
+          shouldBlur && "filter blur-sm select-none" // Apply blur if needed
+        )}>
+          {title}
+        </CardTitle>
+        {/* ----------------------------------------------------------- */}
       </CardHeader>
       {summary && (
         <CardContent className="flex-grow text-sm text-slate-600">
@@ -48,21 +64,19 @@ export default function InsightCard({ _type, title, summary, slug }: InsightCard
         </CardContent>
       )}
       <CardFooter className="text-xs text-slate-400">
-         {/* Display the type in the footer (optional) */}
         <p>{_type.charAt(0).toUpperCase() + _type.slice(1)} • Date</p>
       </CardFooter>
     </Card>
   );
 
-  // If a valid href was created, wrap in a link
   if (href) {
+    // Add pointer-events-none if blurred to make link unclickable? Or keep clickable?
     return (
-      <Link href={href} className="block h-full">
+      <Link href={href} className={cn("block h-full", shouldBlur && "pointer-events-none")}>
         {cardContent}
       </Link>
     );
   }
 
-  // Otherwise, render card without link
   return cardContent;
 }
