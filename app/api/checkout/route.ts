@@ -3,10 +3,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key (sk_test_...)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  // apiVersion is removed here.
-});
+// NOTE: We initialize Stripe *inside* the GET function 
+// to avoid the Vercel build error.
 
 // The Vercel URL where the site is deployed (used for success/cancel redirects)
 const VERCEL_URL = process.env.VERCEL_URL
@@ -14,15 +12,18 @@ const VERCEL_URL = process.env.VERCEL_URL
   : 'http://localhost:3000';
 
 export async function GET(request: Request) {
+  // --- STRIPE INITIALIZATION MOVED HERE ---
+  // It ensures the process.env.STRIPE_SECRET_KEY is only accessed at runtime.
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
+  // ----------------------------------------
+
   // 1. Get user authentication from Clerk
-  // --- CRITICAL FIX: ADD 'await' HERE ---
   const { userId } = await auth(); 
-  // ------------------------------------
   
   // 2. Extract necessary data from the URL query parameters
   const url = new URL(request.url);
   const priceId = url.searchParams.get('priceId');
-  const role = url.searchParams.get('role'); // e.g., 'screener', 'deepDive', 'bundle'
+  const role = url.searchParams.get('role');
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized: User not logged in.' }, { status: 401 });
