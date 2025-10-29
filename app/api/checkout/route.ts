@@ -4,9 +4,9 @@ import { auth } from '@clerk/nextjs/server';
 import Stripe from 'stripe';
 
 // Initialize Stripe with your secret key (sk_test_...)
-// This key must be in your .env.local file
+// We remove the apiVersion explicitly to resolve the Vercel build error.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16', 
+  // apiVersion is removed here.
 });
 
 // The Vercel URL where the site is deployed (used for success/cancel redirects)
