@@ -12,7 +12,7 @@ interface ContentStub {
   slug?: { current: string };
   summary?: string;
   categories?: string[];
-  isFree?: boolean; // <-- Need isFree for filtering and blurring
+  isFree?: boolean; // <-- Need isFree for filtering and blurring.
 }
 
 // Query fetches _type, categories, and isFree
