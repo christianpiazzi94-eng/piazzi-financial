@@ -3,8 +3,17 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Stripe from 'stripe';
 
-// NOTE: We initialize Stripe *inside* the GET function 
-// to avoid the Vercel build error.
+// --- CRITICAL FIX FOR VERCEL BUILD ---
+// Forces the route to run dynamically at request time, not build time.
+export const runtime = 'nodejs'; // Stripe SDK needs the Node.js runtime
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+// ------------------------------------
+
+// --- LAZY INITIALIZATION FIX ---
+// Declare the Stripe client outside the function, but initialize it inside.
+let stripe: Stripe | null = null;
+// -------------------------------
 
 // The Vercel URL where the site is deployed (used for success/cancel redirects)
 const VERCEL_URL = process.env.VERCEL_URL
@@ -12,18 +21,24 @@ const VERCEL_URL = process.env.VERCEL_URL
   : 'http://localhost:3000';
 
 export async function GET(request: Request) {
-  // --- STRIPE INITIALIZATION MOVED HERE ---
-  // It ensures the process.env.STRIPE_SECRET_KEY is only accessed at runtime.
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
+  // --- LAZY INITIALIZATION INSIDE HANDLER ---
+  // Initialize Stripe only when the function runs (at runtime).
+  if (!stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      // This error message is for debugging if the key is truly missing
+      return new NextResponse('Stripe Secret Key is not configured.', { status: 500 });
+    }
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
+  }
   // ----------------------------------------
-
+  
   // 1. Get user authentication from Clerk
   const { userId } = await auth(); 
   
   // 2. Extract necessary data from the URL query parameters
   const url = new URL(request.url);
   const priceId = url.searchParams.get('priceId');
-  const role = url.searchParams.get('role');
+  const role = url.searchParams.get('role'); // e.g., 'screener', 'deepDive', 'bundle'
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized: User not logged in.' }, { status: 401 });
