@@ -3,52 +3,55 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Stripe from 'stripe';
 
-// --- CRITICAL FIX FOR VERCEL BUILD ---
-// Forces the route to run dynamically at request time, not build time.
-export const runtime = 'nodejs'; // Stripe SDK needs the Node.js runtime
+// --- CRITICAL FIXES FOR VERCEL BUILD ---
+// 1. Forces the route to run dynamically at request time (fixes prerender error)
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 // ------------------------------------
 
-// --- LAZY INITIALIZATION FIX ---
-// Declare the Stripe client outside the function, but initialize it inside.
-let stripe: Stripe | null = null;
-// -------------------------------
+// Initialize Stripe once outside the function (Vercel will inject the key at runtime)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
 
-// The Vercel URL where the site is deployed (used for success/cancel redirects)
-const VERCEL_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000';
+// Helper function to get the base URL correctly in production/development
+function getBaseUrl(request: Request) {
+  // 1. Try to get Vercel's URL directly from the environment
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  // 2. Fallback to current request headers (reliable on localhost)
+  const host = request.headers.get('host');
+  if (host) {
+    return `http://${host}`; // Use http for localhost
+  }
+  // 3. Absolute last resort (should not be hit)
+  return 'http://localhost:3000';
+}
 
 export async function GET(request: Request) {
-  // --- LAZY INITIALIZATION INSIDE HANDLER ---
-  // Initialize Stripe only when the function runs (at runtime).
-  if (!stripe) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      // This error message is for debugging if the key is truly missing
-      return new NextResponse('Stripe Secret Key is not configured.', { status: 500 });
-    }
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
-  }
-  // ----------------------------------------
+  // 1. Get base URL for redirects
+  const baseUrl = getBaseUrl(request);
   
-  // 1. Get user authentication from Clerk
+  // 2. Get user authentication from Clerk (this is the actual auth check)
   const { userId } = await auth(); 
-  
-  // 2. Extract necessary data from the URL query parameters
+
+  // 3. Extract data
   const url = new URL(request.url);
   const priceId = url.searchParams.get('priceId');
-  const role = url.searchParams.get('role'); // e.g., 'screener', 'deepDive', 'bundle'
+  const role = url.searchParams.get('role');
 
+  // --- AUTH CHECK: THIS WAS THE BUG TRIGGER ---
   if (!userId) {
+    // If the middleware failed, this stops the execution and clearly signals the error.
     return NextResponse.json({ error: 'Unauthorized: User not logged in.' }, { status: 401 });
   }
   if (!priceId || !role) {
     return NextResponse.json({ error: 'Missing priceId or role in query.' }, { status: 400 });
   }
+  // --------------------------------------------
 
   try {
-    // 3. Create the Stripe Checkout Session
+    // 4. Create the Stripe Checkout Session
     const stripeSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
       
@@ -59,18 +62,16 @@ export async function GET(request: Request) {
         },
       ],
 
-      // CRUCIAL: Attach user ID and desired role as metadata
       metadata: {
         userId: userId,
         subscriptionRole: role, 
       },
 
-      // Redirect URLs
-      success_url: `${VERCEL_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${VERCEL_URL}/pricing?canceled=true`,
+      // Use the dynamically determined baseUrl for redirects
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing?canceled=true`,
     });
 
-    // 4. Send the Stripe Checkout URL back to the client
     return NextResponse.json({ url: stripeSession.url });
 
   } catch (error) {
