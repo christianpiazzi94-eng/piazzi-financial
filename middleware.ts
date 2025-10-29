@@ -12,7 +12,7 @@ const isPublic = createRouteMatcher([
   '/favicon.ico',          // Static assets
   '/robots.txt',
   '/sitemap.xml',
-  // Add other known public pages like /materials, /about, /press if they exist
+  // Add other known public pages
   '/materials',
   '/portfolio',
   '/press',
@@ -22,7 +22,9 @@ const isPublic = createRouteMatcher([
 export default clerkMiddleware((auth, req) => {
   // If the request is NOT for a public route, protect it.
   if (!isPublic(req)) {
-     auth().protect(); // Use await if needed based on your Clerk version/setup, but often not needed here
+     // --- FINAL FIX: Removed parentheses from auth() ---
+     auth.protect();
+     // ------------------------------------------------
   }
 });
 
