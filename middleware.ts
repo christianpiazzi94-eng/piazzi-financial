@@ -1,32 +1,36 @@
 // middleware.ts
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-// Define the public routes that bypass the Clerk middleware redirect.
-const publicRoutes = createRouteMatcher([
-  '/', // Home page
-  '/pricing', // Pricing page
-  '/sign-in(.*)', // Sign-in pages
-  '/sign-up(.*)', // Sign-up pages
-  '/api/checkout(.*)', // CRITICAL FIX: DO NOT PROTECT CHECKOUT API
-  '/api/webhook/stripe', // Do not protect webhook
-  // Add any other public paths (e.g., /materials, /about) if they exist
+// Define ALL public routes that bypass Clerk's protection redirect
+const isPublic = createRouteMatcher([
+  '/',                     // Home page
+  '/pricing',              // Pricing page
+  '/sign-in(.*)',          // Clerk sign-in pages
+  '/sign-up(.*)',          // Clerk sign-up pages
+  '/api/checkout(.*)',     // Stripe checkout API - MUST BE PUBLIC
+  '/api/webhook/stripe',   // Stripe webhook API - MUST BE PUBLIC
+  '/favicon.ico',          // Static assets
+  '/robots.txt',
+  '/sitemap.xml',
+  // Add other known public pages like /materials, /about, /press if they exist
+  '/materials',
+  '/portfolio',
+  '/press',
+  '/about',
 ]);
 
 export default clerkMiddleware((auth, req) => {
-  // If the route is NOT public (and it's not a Next.js internal file)
-  if (!publicRoutes(req)) {
-    // Then require authentication.
-    // --- FINAL FIX: Removed parentheses from auth() ---
-    auth.protect();
-    // ------------------------------------------------
+  // If the request is NOT for a public route, protect it.
+  if (!isPublic(req)) {
+     auth().protect(); // Use await if needed based on your Clerk version/setup, but often not needed here
   }
 });
 
-// Exclude static files and internal Next.js paths from middleware checking
 export const config = {
   matcher: [
-    // This matcher ensures the middleware runs on all relevant routes
-    '/((?!_next|.*\\..*|api/upload/.*|robots.txt|sitemap.xml).*)',
+    // Match all routes except static files and Next.js internals
+    '/((?!_next|.*\\.(?:ico|svg|png|jpg|jpeg|gif|webp|avif|css|js|map|txt)$).*)',
+    // Ensure API routes are still processed by middleware (needed for auth() inside them)
     '/(api|trpc)(.*)',
   ],
 };

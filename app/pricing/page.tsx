@@ -3,70 +3,90 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { useAuth } from '@clerk/nextjs'; // <-- IMPORT useAuth
+import { useAuth } from '@clerk/nextjs';
+import { useState } from 'react'; // Import useState for loading state
 
-// --- YOUR LIVE STRIPE PRICE IDs (TEST MODE) ---
+// --- Use the Price IDs directly from environment if needed, or keep defined here ---
+// Ensure these match the keys used in PRICE_ID_TO_ROLE_MAP in the API route
 const STRIPE_PRICE_IDS = {
-  SCREENER: 'price_1SNIb3K5buyKUL7Sy4UX91NF',
-  DEEP_DIVE: 'price_1SNIbRK5buyKUL7SdvsisPRv',
-  BUNDLE: 'price_1SNIbjK5buyKUL7SBbVhwhAp',
+  SCREENER: process.env.NEXT_PUBLIC_PRICE_SCREENER_ID || 'price_1SNIb3K5buyKUL7Sy4UX91NF', // Fallback needed if env var not set client-side
+  DEEP_DIVE: process.env.NEXT_PUBLIC_PRICE_DEEPDIVE_ID || 'price_1SNIbRK5buyKUL7SdvsisPRv',
+  BUNDLE: process.env.NEXT_PUBLIC_PRICE_BUNDLE_ID || 'price_1SNIbjK5buyKUL7SBbVhwhAp',
 };
+// ------------------------------------------------------------------------------------
 
 const pricingTiers = [
-  // ... (Tiers array remains the same) ...
-  {
+   {
     name: 'Screener Access',
     price: '$50/year',
-    role: 'screener',
+    // Note: 'role' is not needed here anymore, API derives it from priceId
     features: ['Exclusive Stock Lists', 'Access to Screener Page', 'Blurred Deep Dive Names'],
     priceId: STRIPE_PRICE_IDS.SCREENER,
   },
   {
     name: 'Deep Dive Access',
     price: '$50/year',
-    role: 'deepDive',
     features: ['Unlimited Research Reports', 'Full Company Analysis', 'PDF Downloads'],
     priceId: STRIPE_PRICE_IDS.DEEP_DIVE,
   },
   {
     name: 'The Bundle',
     price: '$90/year',
-    role: 'bundle',
     features: ['Everything in Screener & Deep Dive', 'Highest Value', 'Premium Support'],
     priceId: STRIPE_PRICE_IDS.BUNDLE,
   },
 ];
 
-// This function calls the server-side /api/checkout route
-const handleCheckout = async (priceId: string, role: string, isSignedIn: boolean) => {
-  
-  // 1. Check if user is signed in on the client
-  if (!isSignedIn) {
-    alert("Please log in to purchase a subscription.");
-    // Optionally redirect to sign-in page: window.location.assign("/sign-in");
-    return;
-  }
-  
-  // 2. Call the API endpoint
-  const response = await fetch(`/api/checkout?priceId=${priceId}&role=${role}`);
-  const data = await response.json();
-  
-  if (response.ok && data.url) {
-    // 3. Redirects the user to Stripe's secure payment page
-    window.location.assign(data.url);
-  } else {
-    // Handle other errors (the 401 error should now be caught above)
-    alert(`Checkout failed: ${data.error || 'Server error'}. Please try again.`);
-  }
-};
-
 export default function PricingPage() {
-  // --- USE CLERK HOOK HERE ---
   const { isLoaded, isSignedIn } = useAuth();
-  
-  // Disable buttons while auth is loading
+  const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null); // Track loading state per button
+
+  // --- IMPROVED CHECKOUT HANDLER (using POST and error display) ---
+  const handleCheckout = async (priceId: string) => {
+    if (!isSignedIn) {
+      alert("Please log in to purchase a subscription.");
+      // Consider redirecting: window.location.assign("/sign-in");
+      return;
+    }
+    if (!priceId || !priceId.startsWith('price_')) {
+        alert("Invalid Price ID configured for this plan.");
+        return;
+    }
+
+    setLoadingPriceId(priceId); // Set loading state for this specific button
+
+    try {
+      const response = await fetch('/api/checkout', { // Calls the POST endpoint
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }), // Send priceId in the body
+      });
+
+      if (!response.ok) {
+        // If API returns an error (4xx, 5xx), display it
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+      }
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.assign(url); // Redirect to Stripe
+      } else {
+          throw new Error("Received an invalid response from the server.");
+      }
+
+    } catch (error: any) {
+      console.error("Checkout initiation failed:", error);
+      // Display a user-friendly error message
+      alert(`Could not start checkout: ${error.message}`);
+      setLoadingPriceId(null); // Reset loading state on error
+    }
+    // No finally block needed, as redirection stops execution
+  };
+  // ------------------------------------------------------------------
+
   if (!isLoaded) {
-    return <div className="p-20 text-center">Loading plans...</div>
+    return <div className="p-20 text-center">Loading plans...</div>;
   }
 
   return (
@@ -98,13 +118,16 @@ export default function PricingPage() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button 
-                // Pass the isSignedIn status to the handler
-                onClick={() => handleCheckout(tier.priceId, tier.role, isSignedIn)} 
+              <Button
+                onClick={() => handleCheckout(tier.priceId)}
                 className="w-full bg-brand-dark text-white hover:bg-brand-dark/90"
-                disabled={!isLoaded}
+                disabled={!isLoaded || loadingPriceId === tier.priceId} // Disable button while loading this specific price
               >
-                {isSignedIn ? 'Subscribe Now (Test: $0.00)' : 'Log In to Subscribe'}
+                {loadingPriceId === tier.priceId
+                  ? 'Redirecting...' // Show loading text
+                  : isSignedIn
+                  ? 'Subscribe Now (Test: $0.00)'
+                  : 'Log In to Subscribe'}
               </Button>
             </CardFooter>
           </Card>
