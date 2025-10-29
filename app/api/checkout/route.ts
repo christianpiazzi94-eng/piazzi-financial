@@ -4,7 +4,6 @@ import { auth } from '@clerk/nextjs/server';
 import Stripe from 'stripe';
 
 // Initialize Stripe with your secret key (sk_test_...)
-// We remove the apiVersion explicitly to resolve the Vercel build error.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // apiVersion is removed here.
 });
@@ -16,7 +15,9 @@ const VERCEL_URL = process.env.VERCEL_URL
 
 export async function GET(request: Request) {
   // 1. Get user authentication from Clerk
-  const { userId } = auth();
+  // --- CRITICAL FIX: ADD 'await' HERE ---
+  const { userId } = await auth(); 
+  // ------------------------------------
   
   // 2. Extract necessary data from the URL query parameters
   const url = new URL(request.url);
@@ -43,7 +44,6 @@ export async function GET(request: Request) {
       ],
 
       // CRUCIAL: Attach user ID and desired role as metadata
-      // The Webhook (next step) will read this to update Clerk
       metadata: {
         userId: userId,
         subscriptionRole: role, 
