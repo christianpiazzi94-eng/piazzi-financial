@@ -4,84 +4,79 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@clerk/nextjs';
-import { useState } from 'react'; // Import useState for loading state
+import { useState } from 'react';
 
-// --- Use the Price IDs directly from environment if needed, or keep defined here ---
-// Ensure these match the keys used in PRICE_ID_TO_ROLE_MAP in the API route
+// --- Price IDs (Ensure these match your .env.local and Vercel) ---
 const STRIPE_PRICE_IDS = {
-  SCREENER: process.env.NEXT_PUBLIC_PRICE_SCREENER_ID || 'price_1SNIb3K5buyKUL7Sy4UX91NF', // Fallback needed if env var not set client-side
+  SCREENER: process.env.NEXT_PUBLIC_PRICE_SCREENER_ID || 'price_1SNIb3K5buyKUL7Sy4UX91NF',
   DEEP_DIVE: process.env.NEXT_PUBLIC_PRICE_DEEPDIVE_ID || 'price_1SNIbRK5buyKUL7SdvsisPRv',
   BUNDLE: process.env.NEXT_PUBLIC_PRICE_BUNDLE_ID || 'price_1SNIbjK5buyKUL7SBbVhwhAp',
 };
-// ------------------------------------------------------------------------------------
 
 const pricingTiers = [
    {
-    name: 'Screener Access',
-    price: '$50/year',
-    // Note: 'role' is not needed here anymore, API derives it from priceId
-    features: ['Exclusive Stock Lists', 'Access to Screener Page', 'Blurred Deep Dive Names'],
-    priceId: STRIPE_PRICE_IDS.SCREENER,
+    name: 'Screener Access', price: '$50/year', features: ['Exclusive Stock Lists', 'Access to Screener Page', 'Blurred Deep Dive Names'], priceId: STRIPE_PRICE_IDS.SCREENER,
   },
   {
-    name: 'Deep Dive Access',
-    price: '$50/year',
-    features: ['Unlimited Research Reports', 'Full Company Analysis', 'PDF Downloads'],
-    priceId: STRIPE_PRICE_IDS.DEEP_DIVE,
+    name: 'Deep Dive Access', price: '$50/year', features: ['Unlimited Research Reports', 'Full Company Analysis', 'PDF Downloads'], priceId: STRIPE_PRICE_IDS.DEEP_DIVE,
   },
   {
-    name: 'The Bundle',
-    price: '$90/year',
-    features: ['Everything in Screener & Deep Dive', 'Highest Value', 'Premium Support'],
-    priceId: STRIPE_PRICE_IDS.BUNDLE,
+    name: 'The Bundle', price: '$90/year', features: ['Everything in Screener & Deep Dive', 'Highest Value', 'Premium Support'], priceId: STRIPE_PRICE_IDS.BUNDLE,
   },
 ];
 
 export default function PricingPage() {
   const { isLoaded, isSignedIn } = useAuth();
-  const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null); // Track loading state per button
+  const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
 
-  // --- IMPROVED CHECKOUT HANDLER (using POST and error display) ---
+  // --- CHECKOUT HANDLER ---
   const handleCheckout = async (priceId: string) => {
+    // Client-side checks
     if (!isSignedIn) {
       alert("Please log in to purchase a subscription.");
-      // Consider redirecting: window.location.assign("/sign-in");
       return;
     }
     if (!priceId || !priceId.startsWith('price_')) {
-        alert("Invalid Price ID configured for this plan.");
+        alert("Invalid Price ID configured for this plan. Please contact support.");
         return;
     }
 
-    setLoadingPriceId(priceId); // Set loading state for this specific button
+    setLoadingPriceId(priceId); // Set loading state for this button
 
     try {
-      const response = await fetch('/api/checkout', { // Calls the POST endpoint
+      // Call the server API using POST
+      const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ priceId }), // Send priceId in the body
+        credentials: 'include', // <-- Ensures cookies are sent
       });
 
+      // --- Error Handling ---
       if (!response.ok) {
-        // If API returns an error (4xx, 5xx), display it
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        const errorText = await response.text();
+        let specificError = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          specificError = errorJson.error || errorText;
+        } catch (e) { }
+        throw new Error(specificError || `Request failed with status ${response.status}`);
       }
+      // ----------------------
 
+      // If response was OK, parse JSON and redirect
       const { url } = await response.json();
       if (url) {
-        window.location.assign(url); // Redirect to Stripe
+        window.location.assign(url); // Redirect to Stripe Checkout
       } else {
-          throw new Error("Received an invalid response from the server.");
+        throw new Error("Received an invalid response from the server (missing checkout URL).");
       }
 
     } catch (error: any) {
       console.error("Checkout initiation failed:", error);
-      // Display a user-friendly error message
       alert(`Could not start checkout: ${error.message}`);
       setLoadingPriceId(null); // Reset loading state on error
     }
-    // No finally block needed, as redirection stops execution
   };
   // ------------------------------------------------------------------
 
@@ -89,6 +84,7 @@ export default function PricingPage() {
     return <div className="p-20 text-center">Loading plans...</div>;
   }
 
+  // Render the pricing page UI
   return (
     <div className="mx-auto max-w-6xl p-8">
       <div className="text-center mb-12">
@@ -121,10 +117,10 @@ export default function PricingPage() {
               <Button
                 onClick={() => handleCheckout(tier.priceId)}
                 className="w-full bg-brand-dark text-white hover:bg-brand-dark/90"
-                disabled={!isLoaded || loadingPriceId === tier.priceId} // Disable button while loading this specific price
+                disabled={!isLoaded || loadingPriceId === tier.priceId}
               >
                 {loadingPriceId === tier.priceId
-                  ? 'Redirecting...' // Show loading text
+                  ? 'Redirecting...'
                   : isSignedIn
                   ? 'Subscribe Now (Test: $0.00)'
                   : 'Log In to Subscribe'}
