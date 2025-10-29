@@ -7,7 +7,7 @@ const publicRoutes = createRouteMatcher([
   '/pricing', // Pricing page
   '/sign-in(.*)', // Sign-in pages
   '/sign-up(.*)', // Sign-up pages
-  '/api/checkout(.*)', // <--- CRITICAL FIX: DO NOT PROTECT CHECKOUT API
+  '/api/checkout(.*)', // CRITICAL FIX: DO NOT PROTECT CHECKOUT API
   '/api/webhook/stripe', // Do not protect webhook
   // Add any other public paths (e.g., /materials, /about) if they exist
 ]);
@@ -16,7 +16,9 @@ export default clerkMiddleware((auth, req) => {
   // If the route is NOT public (and it's not a Next.js internal file)
   if (!publicRoutes(req)) {
     // Then require authentication.
-    auth().protect();
+    // --- FINAL FIX: Removed parentheses from auth() ---
+    auth.protect();
+    // ------------------------------------------------
   }
 });
 
